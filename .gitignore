@@ -1,0 +1,6 @@
+cnc/fag
+cnc/demo_server.log
+cnc/__pycache__/
+cnc/__pycache__/*
+cnc/.vscode/
+cnc/.vscode/*

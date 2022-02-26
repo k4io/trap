@@ -1,0 +1,7 @@
+twisted
+pyOpenSSL
+service_identity
+shodan
+requests
+colorama
+bcrypt
