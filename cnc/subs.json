@@ -1,0 +1,44 @@
+{
+    "subs": [
+      { 
+        "id": "0",
+        "name": "home hitta",
+        "maxtime": "86400",
+        "power": "5gb",
+        "con": "1",
+        "cd": "120"
+      },
+      {
+        "id": "1",
+        "name": "hitta",
+        "maxtime": "3600",
+        "power": "25%",
+        "con": "1",
+        "cd": "60"
+      },
+      {
+        "id": "2",
+        "name": "vip hitta",
+        "maxtime": "7200",
+        "power": "50%",
+        "con": "3",
+        "cd": "60"
+      },
+      {
+        "id": "3",
+        "name": "trappa",
+        "maxtime": "7200",
+        "power": "75%",
+        "con": "5",
+        "cd": "60"
+      },
+      {
+        "id": "4",
+        "name": "vip trappa",
+        "maxtime": "28800",
+        "power": "100%",
+        "con": "10",
+        "cd": "30"
+      }
+    ]
+  }

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+import time
 import sshfunctions
-from sshfunctions import clear_terminal, execute_flood, functions, User, colored_, send_banner, methodlist, usage
+from sshfunctions import clear_terminal, execute_flood, functions, User, colored_, send_banner, methodlist, usage, connected, running, get_attack_count
 
 import os
 import io
@@ -165,10 +166,22 @@ def process_command(command: str, client, addr, chan: paramiko.Channel):
             elif sztr == 'success':
                 chan.send(colored_(f"\r\n╚═[W]~> Successfully added {params[0]}!", start_fg=[10, 80, 190], end_fg=[40,190,0]))
             return
+        if cmd == 'addsub':
+            sztr = functions[cmd](chan, int(params[1]), int(params[2]), User(params[0]).uid)
+            if sztr == 1:
+                chan.send(colored_(f"\r\n╚═[!]~> Error occured while adding user!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+            elif sztr == 2:
+                chan.send(colored_(f"\r\n╚═[W]~> Successfully added sub: {params[1]} to {params[0]}!", start_fg=[10, 80, 190], end_fg=[40,190,0]))
+            elif sztr == 2:
+                chan.send(colored_(f"\r\n╚═[W]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+            return
         if cmd == 'help':
             functions[cmd](chan)
             return
         if cmd == 'cls':
+            functions[cmd](chan)
+            return
+        if cmd == 'sublist':
             functions[cmd](chan)
             return
         if cmd == 'user':
@@ -211,25 +224,35 @@ def process_command(command: str, client, addr, chan: paramiko.Channel):
                 chan.send(colored_(f"\r\n╚═[!]~> Error occured sending attack!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
                 return
         except Exception as e:
-            try:
-                z = usage[cmd]
-                chan.send(colored_(f"\r\n╚═[!]~> Usage: {z}", start_fg=[10, 80, 190], end_fg=[190,40,0]))
-                return
-            except Exception as e:
-                print('1:' + e)
-            print('2:' + e)
+            print('1:' + e)
+
         raise("No command supplied!")
         return
         #functions[cmd](chan, params)
     except Exception as e:
         #chan.send(colored_(f"\r\n╔═════[trap.sh]\r\n", start_fg=[10, 80, 190], end_fg=[190,40,0]))
-        chan.send(colored_(f"\r\n╚═[!]~> ", start_fg=[10, 80, 190], end_fg=[190,40,0]))
-        chan.send(f'"{cmd}" is an invalid command!\r\n')
+        try:
+            z = usage[cmd]
+            chan.send(colored_(f"\r\n╚═[!]~> Usage: {z}", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+            return
+        except Exception as e2:
+            chan.send(colored_(f"\r\n╚═[!]~> ", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+            chan.send(f'"{cmd}" is an invalid command!\r\n')
+            print(e2)
         print(e)
 
+def update_title(chan: paramiko.Channel):
+    u = User(chan.transport.get_username())
+    while True:
+        try:
+            chan.send(f'\033]0;[{chan.transport.get_username()} @ trap.sh] [{connected} mandem] [{u.daysleft()} days left] [{running} running] [{str(get_attack_count())} attacks]\007')
+            time.sleep(1000)
+        except Exception as e:
+            print(e)
+            return
 
 def manage_conn(client, addr):
-    print(f"{addr[0]} connected.")
+    #print(colored_(f"{addr[0]}", start_fg=[10, 80, 190], end_fg=[190,40,0]))
 
     try:
         t = paramiko.Transport(client, gss_kex=DoGSSAPIKeyExchange)
@@ -252,13 +275,13 @@ def manage_conn(client, addr):
         if chan is None:
             print("*** No channel.")
             return
-        print("Authenticated!")
-
+        #print("Authenticated!")
         server.event.wait(10)
         if not server.event.is_set():
             print("*** Client never asked for a shell.")
             return
 
+        
         current_user = User(chan.transport.get_username())
         ip = f"{chan.transport.getpeername()[0]}"
 
@@ -269,10 +292,11 @@ def manage_conn(client, addr):
             chan.send('User is banned!\r\n')
             return
 
-
+        print(colored_(f"[+] {current_user.username} logged in from {ip}", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+        _thread.start_new_thread(update_title, (chan,))
         command_history = []
         clear_terminal(chan) #send banner and clear terminal
-
+        
         while True: #process commands
             #this just checks if current user gets banned during session
             current_user = User(current_user.username)
@@ -295,8 +319,9 @@ def manage_conn(client, addr):
                 if cmd == '\\r': #enter key
                     break
                 elif cmd == '\\x7f': #handle backspace
-                    chan.send('\b \b')
-                    cmdstr = cmdstr[:-1]
+                    if(len(cmdstr) > 0):
+                        chan.send('\b \b')
+                        cmdstr = cmdstr[:-1]
                     continue
                 elif cmd == '\\x03': #ctrl+c
                     chan.close()
@@ -346,7 +371,7 @@ def manage_conn(client, addr):
 while True:
     try:
         sock.listen(100)
-        print("Listening for connection ...")
+        #ifprint("Listening for connection ...")
         client, addr = sock.accept()
         _thread.start_new_thread(manage_conn, (client, addr, ))
     except Exception as e:

@@ -1,5 +1,8 @@
 #all attack methods
 
+connected = 0
+running = 0
+
 class method:
     def attack(self, params: list) -> bool:
         ip = str(params[0])
@@ -18,10 +21,4 @@ methodlist = {
     "udp": udp,
     "tcp": tcp,
     "dns": dns
-}
-
-usage = {
-    "udp": "udp (hostname) (port) (seconds)",
-    "tcp": "tcp (hostname) (port) (seconds)",
-    "dns": "dns (hostname) (port) (seconds)"
 }

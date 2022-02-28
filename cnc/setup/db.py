@@ -18,8 +18,8 @@ CREATE TABLE subs (
     sub_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     uid INT NOT NULL,
     sub INT NOT NULL,
-    startdt DATETIME NOT NULL,
-    enddt DATETIME NOT NULL
+    startdt INT NOT NULL,
+    enddt INT NOT NULL
 )"""
 attack_table_definition = """
 CREATE TABLE attacks (

