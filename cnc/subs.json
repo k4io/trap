@@ -19,7 +19,7 @@
       {
         "id": "2",
         "name": "vip hitta",
-        "maxtime": "7200",
+        "maxtime": "5400",
         "power": "50%",
         "con": "3",
         "cd": "60"
@@ -27,7 +27,7 @@
       {
         "id": "3",
         "name": "trappa",
-        "maxtime": "7200",
+        "maxtime": "5400",
         "power": "75%",
         "con": "5",
         "cd": "60"
@@ -35,7 +35,7 @@
       {
         "id": "4",
         "name": "vip trappa",
-        "maxtime": "28800",
+        "maxtime": "7200",
         "power": "100%",
         "con": "10",
         "cd": "30"

@@ -140,7 +140,7 @@ for i in range(len(banner.split("\n"))):
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(("", 2200))
+    sock.bind(("", 25565))
 except Exception as e:
     print("*** Bind failed: " + str(e))
     traceback.print_exc()
@@ -173,7 +173,7 @@ def process_command(command: str, client, addr, chan: paramiko.Channel):
             elif sztr == 2:
                 chan.send(colored_(f"\r\n╚═[W]~> Successfully added sub: {params[1]} to {params[0]}!", start_fg=[10, 80, 190], end_fg=[40,190,0]))
             elif sztr == 2:
-                chan.send(colored_(f"\r\n╚═[W]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+                chan.send(colored_(f"\r\n╚═[!]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             return
         if cmd == 'help':
             functions[cmd](chan)
@@ -187,14 +187,14 @@ def process_command(command: str, client, addr, chan: paramiko.Channel):
         if cmd == 'user':
             result = functions[cmd](chan, params[0])
             if result == 0:
-                chan.send(colored_(f"\r\n╚═[W]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+                chan.send(colored_(f"\r\n╚═[!]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             elif result == 1:
                 chan.send(colored_(f"\r\n╚═[!]~> Invalid username!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             return
         if cmd == 'ban':
             result = functions[cmd](chan, params[0])
             if result == 0:
-                chan.send(colored_(f"\r\n╚═[W]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+                chan.send(colored_(f"\r\n╚═[!]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             elif result == 1:
                 chan.send(colored_(f"\r\n╚═[!]~> Invalid username!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             elif result == 2:
@@ -203,7 +203,7 @@ def process_command(command: str, client, addr, chan: paramiko.Channel):
         if cmd == 'unban':
             result = functions[cmd](chan, params[0])
             if result == 0:
-                chan.send(colored_(f"\r\n╚═[W]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
+                chan.send(colored_(f"\r\n╚═[!]~> Insufficient permissions!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             elif result == 1:
                 chan.send(colored_(f"\r\n╚═[!]~> Invalid username!", start_fg=[10, 80, 190], end_fg=[190,40,0]))
             elif result == 2:
@@ -290,6 +290,9 @@ def manage_conn(client, addr):
         current_user.update_ip(ip)
         if current_user.status == 0:
             chan.send('User is banned!\r\n')
+            return
+        if current_user.daysleft() < 0:
+            chan.send('Subscription expired!')
             return
 
         print(colored_(f"[+] {current_user.username} logged in from {ip}", start_fg=[10, 80, 190], end_fg=[190,40,0]))
