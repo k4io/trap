@@ -21,8 +21,9 @@ class sr:
         self.vulns = v
 
 
-#shodan_key = 'TyNizThNzsXfN5lQ60uSZZFlGgqMhMhd' #member account
-shodan_key = '1gbfsV4RhYfN1rPeRcaCG92r3YdzTpwW' #free account for testing
+#shodan_key = 'PEUojtx9pOmAPolcm6qtVkPtoIiCKbNW' #member account
+#shodan_key = 'TyNizThNzsXfN5lQ60uSZZFlGgqMhMhd' #free account for testing
+#shodan_key = '1gbfsV4RhYfN1rPeRcaCG92r3YdzTpwW' #free account for testing
 
 print('[+] Connecting to shodan...')
 api = shodan.Shodan(shodan_key)
