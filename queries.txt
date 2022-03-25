@@ -1,4 +1,9 @@
-netgear routerlo
+Draytek Vigor3900
+vigor dws
+Arris http.status:200
+totolink dvr
+terramaster tos
+netgear router
 zyxel router
 dlink router
 comtrend router

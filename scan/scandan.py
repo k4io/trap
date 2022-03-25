@@ -2,7 +2,7 @@ import shodan
 
 #
 #
-# multi_loader (botenago loader) router shodan scanner
+# shodan scanner
 #
 #
 tup = tuple(open('queries.txt', 'r'))
@@ -21,7 +21,7 @@ class sr:
         self.vulns = v
 
 
-#shodan_key = 'PEUojtx9pOmAPolcm6qtVkPtoIiCKbNW' #member account
+shodan_key = '1E03IJsee3IGKuYfGfUU3a8jtbn8nI6C' #member account
 #shodan_key = 'TyNizThNzsXfN5lQ60uSZZFlGgqMhMhd' #free account for testing
 #shodan_key = '1gbfsV4RhYfN1rPeRcaCG92r3YdzTpwW' #free account for testing
 
@@ -43,8 +43,8 @@ def get_query_results(query: str):
             count = results['total']
             pages = count / 100
 
-            if pages > 5: #max pages temp
-                pages = 5
+            if pages > 11: #max pages temp  
+                pages = 11
         except Exception as e:
             if str(e).find('upgrade') != -1:
                 print('\n[+] Upgrade API to search with more pages')
@@ -107,3 +107,4 @@ for x in search_queries:
         line = m.ip + ':' + str(m.port) + '\n'
         with open('ips.txt', 'a') as the_file:
             the_file.write(line)
+    exit()
