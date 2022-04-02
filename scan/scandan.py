@@ -43,8 +43,8 @@ def get_query_results(query: str):
             count = results['total']
             pages = count / 100
 
-            if pages > 11: #max pages temp  
-                pages = 11
+            if pages > 6: #max pages temp  
+                pages = 6
         except Exception as e:
             if str(e).find('upgrade') != -1:
                 print('\n[+] Upgrade API to search with more pages')
