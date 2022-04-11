@@ -21,7 +21,8 @@ class sr:
         self.vulns = v
 
 
-shodan_key = '1E03IJsee3IGKuYfGfUU3a8jtbn8nI6C' #member account
+#shodan_key = '1E03IJsee3IGKuYfGfUU3a8jtbn8nI6C' #member account
+shodan_key = 'FXlEeJqUeGoWIm9m9PuIbOZ5TCT9VIop' #creams member account
 #shodan_key = 'TyNizThNzsXfN5lQ60uSZZFlGgqMhMhd' #free account for testing
 #shodan_key = '1gbfsV4RhYfN1rPeRcaCG92r3YdzTpwW' #free account for testing
 
@@ -43,8 +44,8 @@ def get_query_results(query: str):
             count = results['total']
             pages = count / 100
 
-            if pages > 6: #max pages temp  
-                pages = 6
+            if pages > 2: #max pages temp  
+                pages = 2
         except Exception as e:
             if str(e).find('upgrade') != -1:
                 print('\n[+] Upgrade API to search with more pages')

